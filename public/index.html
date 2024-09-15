@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Scheduler</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .container { width: 80%; margin: 20px auto; }
+    .form-group { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Task Scheduler</h1>
+
+    <!-- Add Task Form -->
+    <h2>Add New Task</h2>
+    <div class="form-group">
+      <input type="text" id="task-name" placeholder="Task Name">
+    </div>
+    <div class="form-group">
+      <input type="text" id="cron-expression" placeholder="Cron Expression (* * * * *)">
+    </div>
+    <button id="add-task-btn">Add Task</button>
+
+    <!-- Task List -->
+    <h2>Task List</h2>
+    <ul id="task-list"></ul>
+
+    <!-- Logs -->
+    <h2>Task Logs</h2>
+    <ul id="task-logs"></ul>
+  </div>
+
+  <script>
+    // Fetch tasks and logs
+    async function fetchTasks() {
+      const response = await fetch('/api/tasks');
+      const tasks = await response.json();
+      const taskList = document.getElementById('task-list');
+      taskList.innerHTML = '';
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.textContent = `${task.name} - ${task.cronExpression}`;
+        taskList.appendChild(li);
+      });
+    }
+
+    async function fetchLogs() {
+      const response = await fetch('/api/tasks/logs');
+      const logs = await response.json();
+      const logList = document.getElementById('task-logs');
+      logList.innerHTML = '';
+      logs.forEach(log => {
+        const li = document.createElement('li');
+        li.textContent = `${log.task} - ${log.status} (${log.timestamp})`;
+        logList.appendChild(li);
+      });
+    }
+
+    // Add new task
+    document.getElementById('add-task-btn').addEventListener('click', async () => {
+      const name = document.getElementById('task-name').value;
+      const cronExpression = document.getElementById('cron-expression').value;
+
+      const response = await fetch('/api/tasks/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, cronExpression }),
+      });
+
+      if (response.ok) {
+        alert('Task added');
+        fetchTasks();
+      } else {
+        alert('Error adding task');
+      }
+    });
+
+    fetchTasks();
+    fetchLogs();
+  </script>
+</body>
+</html>
